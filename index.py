@@ -1,105 +1,27 @@
-import csv
-import sys
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.model_selection import GridSearchCV
-from sklearn import svm
-from sklearn.model_selection import train_test_split
-from sklearn.svm import SVC
-from sklearn.neural_network import MLPClassifier
-from sklearn.neighbors import KNeighborsClassifier
-import random
-# Określanie jaki mam maksymalny rozmiar pola dostępny
-maxInt = sys.maxsize
-while True:
-    try:
-        csv.field_size_limit(maxInt)
-        break
-    except OverflowError:
-        maxInt = int(maxInt/10)
+import argparse
+from modules.utils import * 
+from modules.interface import * 
 
-		
+parser = argparse.ArgumentParser(description='Program umożliwiający zbadanie działania algorytmów SVC, MLP i KNN na rzeczywistych danych. Stara się on rozwiązać problem rozpoznawania, czy dana wiadomośc email jest spamem czy nie.', 
+epilog="Autor: \n Rafał Rzewucki - 248926\n Dodatkowe opcje dla algorytmów: \n SVC: \n \t -o1 - jądro \n \t -o2 - randomState  \n MLP: \n \t -o1 - alfa \n \t -o2 - maxIter  \n KNN: \n \t -o1 - ilość sąsiadów",
+ add_help=False)
+parser.add_argument('-m', "--mode", help="Określa metodę uruchoienia programu. Wartości: train|visualise|run", default='run', required=True)
+parser.add_argument('-a', "--algorithm", help="Określa używany algorytm. Wartości: SVC|MLP|KNN", default='', required=True)
+parser.add_argument('-f', "--file", help="Określa nazwę pliku do którego będzie zapisywane wyjście (Bez rozszerzenia!)", default='', required=False)
+parser.add_argument('-d', "--data", help="Określa nazwę pliku z którego ma pobierać dane do nauki", default='', required=False)
+parser.add_argument('-o1', "--option1", help="Opcja pierwsza - używana do przekazania argumentów do modelu (Opis na dole)", default='', required=False)
+parser.add_argument('-o2', "--option2", help="Opcja druga - używana do przekazania argumentów do modelu (Opis na dole)", default='', required=False)
+parser.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,help='Pokazuje menu pomocy i kończy działanie programu')
+args = parser.parse_args()
 
-# przygotowanie pierwszej porcji danych
-def parseRawData():
-	emails = [];
-
-	#odczytywanie drugiej porcji danych
-	pathToCsv = './data/raw/2/data_2.csv'
-	file = open(pathToCsv, encoding='utf-8')
-	csvreader = csv.reader(file)
-	next(csvreader) # pomijanie headera CSV
-
-	## odczytywanie kolejnych wierszy
-	for row in csvreader:
-		if row[1]:
-			if row[0] == '0':
-				label = 'ham'
-			else:
-				label = 'spam'
-			emails.append([label, row[1]])
-	file.close()
-
-	#odczytywanie trzeciej porcji danych
-	pathToCsv = './data/raw/3/data_3.csv'
-	file = open(pathToCsv, encoding='utf-8')
-	csvreader = csv.reader(file)
-	next(csvreader) # pomijanie headera CSV
-
-	## odczytywanie kolejnych wierszy
-	for row in csvreader:
-		emails.append(row)
-	file.close()
-
-	# zwracanie przygotowanych danych
-	random.shuffle(emails)
-	return emails
-
-
-def saveParsedData(emails):
-	pathToCsv = './data/parsed/full.csv'
-	with open(pathToCsv, 'w', newline="", encoding='utf-8') as file:
-		csvwriter = csv.writer(file)
-		csvwriter.writerow(['label', 'email'])
-		csvwriter.writerows(emails)
-
-## Wstępne przygotowywanie mejli
-# emails = parseRawData()
-# saveParsedData(emails)
-
-pathToDataForProcess = './data/parsed/full.csv'
-# otwieranie danych do przetworzenia
-data = pd.read_csv(pathToDataForProcess)
-data.info()
-
-# rozdzielanie danych na x i y
-X = data['email'].values
-y = data['label'].values
-
-#rozdzielanie danych na treningowe i testowe
-X_train, X_test, y_train, y_test = train_test_split( X, y, test_size=0.4, random_state=1234567)
-
-# Przerabianie tekstu na liczby
-cv = CountVectorizer() 
-X_train = cv.fit_transform(X_train)
-X_test = cv.transform(X_test)
-
-#uruchamianie algorytmu SVC
-# print('SVC')
-# svc_classifier = SVC(kernel = 'rbf', random_state = 0)
-# svc_classifier.fit(X_train, y_train)
-# print(svc_classifier.score(X_test,y_test))
-
-#uruchamianie algorytmu MLP
-print('MLP')
-mlp_classifier = MLPClassifier(alpha=1, max_iter=3)
-mlp_classifier.fit(X_train, y_train)
-print(mlp_classifier.score(X_test,y_test))
-
-#uruchamianie algorytmu KNN
-# print('KNN')
-# knn_classifier = KNeighborsClassifier(n_neighbors=6)
-# knn_classifier.fit(X_train, y_train)
-# print(knn_classifier.score(X_test,y_test))
+if args.mode == 'train':
+	log('Tryb uczenia')
+	trainClassifier(args)
+elif args.mode == 'visualise':
+	log('Tryb wizualizacji')
+	visualiseClassifier(args)
+elif args.mode == 'run':
+	log('Tryb uruchamiania algorytmu')
+	runClassifier(args)
+else:
+	log("Nieznany tryb uruchomienia: " + args.mode)
