@@ -6,7 +6,7 @@ parser = argparse.ArgumentParser(description='Program umożliwiający zbadanie d
 epilog="Autor: \n Rafał Rzewucki - 248926\n Dodatkowe opcje dla algorytmów: \n SVC: \n \t -o1 - jądro \n \t -o2 - randomState  \n MLP: \n \t -o1 - alfa \n \t -o2 - maxIter  \n KNN: \n \t -o1 - ilość sąsiadów",
  add_help=False)
 parser.add_argument('-m', "--mode", help="Określa metodę uruchoienia programu. Wartości: train|visualise|run", default='run', required=True)
-parser.add_argument('-a', "--algorithm", help="Określa używany algorytm. Wartości: SVC|MLP|KNN", default='', required=True)
+parser.add_argument('-a', "--algorithm", help="Określa używany algorytm. Wartości: SVC|MLP|KNN", default='', required=False)
 parser.add_argument('-f', "--file", help="Określa nazwę pliku do którego będzie zapisywane wyjście (Bez rozszerzenia!)", default='', required=False)
 parser.add_argument('-d', "--data", help="Określa nazwę pliku z którego ma pobierać dane do nauki", default='', required=False)
 parser.add_argument('-o1', "--option1", help="Opcja pierwsza - używana do przekazania argumentów do modelu (Opis na dole)", default='', required=False)
