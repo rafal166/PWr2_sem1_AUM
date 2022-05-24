@@ -1,6 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from datetime import datetime
+import time
+import codecs, json
 
 # KRZYWE UCZENIA
 from sklearn.model_selection import ShuffleSplit
@@ -16,8 +18,8 @@ def plot_learning_curve(
     axes=None,
     ylim=None,
     cv=None,
-    n_jobs=None,
-    train_sizes=np.linspace(0.1, 1.0, 5),
+    n_jobs=-1,
+    train_sizes=np.linspace(0.1, 0.5, 10),
 ):
     if axes is None:
         _, axes = plt.subplots(3, 1, figsize=(20, 5), constrained_layout=True)
@@ -103,37 +105,39 @@ def plot_learning_curve(
 def getOutputFilePath(fileName):
 	return './output/' + fileName;
 
+def getInputFilePath(fileName):
+	return './input/' + fileName;
 
 def getAlgOptions(args):
 	if args.algorithm == 'SVC':
 		# jądro
 		if args.option1 == '':
-			kernel = 'rbf'
+			kernel = 'linear'
 			log('Nie podano jądra. Używam domyślnego: "' + kernel + '"')
 		else:
 			kernel = args.option1
-		#randomState
+		#C
 		if args.option2 == '':
-			randomState = 0
-			log('Nie podano randomState. Używam domyślnego: ' + str(randomState))
+			C = 20
+			log('Nie podano parametru C. Używam domyślnego: ' + str(C))
 		else:
-			randomState = int(args.option2)
-		return kernel, randomState
+			C = int(args.option2)
+		return kernel, C
 
 	elif args.algorithm == 'MLP':
-		# alfa
+		# hidden_layer_sizes
 		if args.option1 == '':
-			alpha = 1
-			log('Nie podano parametru "alfa". Używam domyślnego: ' + str(alpha))
+			hidden_layer_sizes = (3, 2)
+			log('Nie podano parametru "hidden_layer_sizes". Używam domyślnego: ' + str(hidden_layer_sizes))
 		else:
-			alpha = int(args.option1)
+			hidden_layer_sizes = int(args.option1)
 		#maxIter
 		if args.option2 == '':
-			maxIter = 3
+			maxIter = 100
 			log('Nie podano maxIter. Używam domyślnego: ' + str(maxIter))
 		else:
 			randomState = int(args.option2)
-		return alpha, maxIter
+		return hidden_layer_sizes, maxIter
 	
 	elif args.algorithm == 'KNN':
 		#nNeighbors
@@ -146,7 +150,7 @@ def getAlgOptions(args):
 
 def getFileName(args):
 	if args.file == '':
-		return 'default_' + time()
+		return 'default_' + str(time.time())
 	return args.file
 
 def getDataFileName(args):
@@ -163,3 +167,18 @@ def saveModelToFile(args, model):
 	filepath = getOutputFilePath(getFileName(args)+'.sav')
 	pickle.dump(model, open(filepath, 'wb'))
 	log('Model został zapisany do "' + filepath + '"')
+
+def saveGridSearchToFile(args, results):
+	#konwertowanie danych
+	for key in results.keys():
+		if "list" not in type(results[key]).__name__:
+			results[key] = results[key].tolist();
+
+	filepath = getOutputFilePath(getFileName(args)+'.json')
+
+	json.dump(results, codecs.open(filepath, 'w', encoding='utf-8'), 
+		separators=(',', ':'), 
+		sort_keys=True, 
+		indent=4)
+
+	log('Wynik został zapisany do "' + filepath + '"')

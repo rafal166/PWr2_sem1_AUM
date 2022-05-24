@@ -4,8 +4,11 @@ import pickle
 
 # ALGORYTMY UCZENIA
 from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, precision_score, f1_score, confusion_matrix
 from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import GridSearchCV
+from sklearn.feature_extraction.text import CountVectorizer
 
 def trainClassifier(args):
 	log('Pobiernie danych do nauki z pliku "' + getDataFileName(args) + '"')
@@ -14,11 +17,10 @@ def trainClassifier(args):
 	if args.algorithm == 'SVC':
 		kernel, randomState = getAlgOptions(args)
 		classifier = SVC(kernel = kernel, random_state = randomState)
-		classifier.fit(X_train, Y_train)
 
 	elif args.algorithm == 'MLP':
-		alpha, maxIter = getAlgOptions(args)
-		classifier = MLPClassifier(alpha=alpha, max_iter=maxIter)
+		hiddenLayerSizes, maxIter = getAlgOptions(args)
+		classifier = MLPClassifier(hidden_layer_sizes=hiddenLayerSizes, max_iter=maxIter)
 
 	elif args.algorithm == 'KNN':
 		nNeighbors = getAlgOptions(args)
@@ -35,19 +37,53 @@ def trainClassifier(args):
 	saveModelToFile(args, classifier)
 	log('Zakończono proces uczenia')
 
-def runClassifier(args):
+def statisticClassifier(args):
 	# ładowanie modelu
-	log('Rozpoczynam testowanie klasyfikatora: '+ args.algorithm)
+	log('Rozpoczynam pobieranie statystyk klasyfikatora: '+ args.file)
 
 	filePath = getOutputFilePath(getFileName(args)+'.sav')
 	classifier = pickle.load(open(filePath, 'rb'))
 	#pobieranie danych do testowania
 	X_train, X_test, Y_train, Y_test = getDataToLearn(getDataFileName(args), 0.2)
 
-	testScore = classifier.score(X_test, Y_test)
-	log('Test score: '+ str(testScore))
+	Y_predicted = classifier.predict(X_test)
 
-	log('Koniec testu klasyfikatora: '+ args.algorithm)
+	accuracy = accuracy_score(Y_test, Y_predicted)
+	precission = precision_score(Y_test, Y_predicted, average=None)
+	f1score = f1_score(Y_test, Y_predicted, average=None)
+	confusionMatrix = confusion_matrix(Y_test, Y_predicted)
+
+	log('Accuracy: '+ str(accuracy))
+	log('Precission: '+ str(precission))
+	log('F1Score: '+ str(f1score))
+	log('ConfusionMatrix: '+ str(confusionMatrix))
+
+	log('Koniec pobierania statystyk klasyfikatora: '+ args.file)
+
+def runClassifier(args):
+	# ładowanie modelu
+	log('Rozpoczynam uruchamianie klasyfikatora: '+ args.file)
+
+	filePath = getOutputFilePath(getFileName(args)+'.sav')
+	classifier = pickle.load(open(filePath, 'rb'))
+	#pobieranie danych do testowania
+
+	with open(getInputFilePath(args.input)) as f:
+		content = f.read()
+
+	log('content')
+	log(content)
+
+	# zamiana na wartość liczbową
+	cv = getCountVectorizer() 
+	X_content = cv.transform([content])
+ 
+
+	Y_predicted = classifier.predict(X_content)
+
+	log('Result: '+ str(Y_predicted))
+
+	log('Koniec uruchamiania klasyfikatora: '+ args.file)
 
 
 def visualiseClassifier(args):
@@ -57,13 +93,13 @@ def visualiseClassifier(args):
 
 	log('Określanie parametrów klasyfikatora')
 	if args.algorithm == 'SVC':
-		kernel, randomState = getAlgOptions(args)
-		classifier = SVC(kernel = kernel, random_state = randomState)
+		kernel, C = getAlgOptions(args)
+		classifier = SVC(kernel = kernel, C = C)
 		title = 'Krzywe uczenia algorytmu SVC (jądro "'+kernel+'")'
 	elif args.algorithm == 'MLP':
-		alpha, maxIter = getAlgOptions(args)
-		classifier = MLPClassifier(alpha=alpha, max_iter=maxIter)
-		title = 'Krzywe uczenia algorytmu MLP (alfa: '+str(alpha)+', ilość iteracji: '+str(maxIter)+')'
+		hidden_layer_sizes, maxIter = getAlgOptions(args)
+		classifier = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, max_iter=maxIter)
+		title = 'Krzywe uczenia algorytmu MLP (hidden_layer_sizes: '+str(hidden_layer_sizes)+', ilość iteracji: '+str(maxIter)+')'
 	elif args.algorithm == 'KNN':
 		nNeighbors = getAlgOptions(args)
 		classifier = KNeighborsClassifier(n_neighbors=nNeighbors)
@@ -85,3 +121,35 @@ def visualiseClassifier(args):
 	plt.show()
 
 	log('Koniec wizualizacji klasyfikatora')
+
+def gridSearchClassifier(args):
+	log('Rozpoczynam szukanie parametrów klasyfikatora')
+	X_train, X_test, Y_train, Y_test = getDataToLearn(getDataFileName(args), 0.00001)
+
+	if args.algorithm == 'SVC':
+		log('Wybrano klasyfikator SVC')
+		classifier = SVC();
+		parameters = {'kernel':('linear', 'rbf', 'poly'), 'C':[0.1, 1, 20]}
+	elif args.algorithm == 'MLP':
+		log('Wybrano klasyfikator MLP')
+		classifier = MLPClassifier();
+		parameters = {
+			'hidden_layer_sizes': [(1,2,3), (3,2)],
+			'max_iter': [100, 200, 400],
+		}
+	elif args.algorithm == 'KNN':
+		log('Wybrano klasyfikator KNN')
+		classifier = KNeighborsClassifier();
+		parameters = {'n_neighbors': [1, 2, 3, 5, 8, 13]}
+	else:
+		log('Nie znaleziono podanego algorytmu: ' + args.algorithm)
+		exit()
+
+
+	#działanie...
+	clf = GridSearchCV(estimator = classifier, param_grid = parameters, n_jobs = -1, verbose = 2)
+	clf.fit(X_train, Y_train)
+
+	# zapisywanie danych do pliku
+	saveGridSearchToFile(args, clf.cv_results_)
+	log('Koniec szukania parametrów klasyfikatora')

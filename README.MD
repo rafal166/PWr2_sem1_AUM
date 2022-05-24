@@ -19,11 +19,12 @@ Nauczone modele zapisywane są w katalogu **output** w pliku o nazwie zdefiniowa
 py main.py -m train -a MLP -f output_model
 ```
 
+
 ### Tryb uruchamiania algorytmu
-Ten tryb jest jeszcze w opracowaniu
+Odczytuje treść mejla podaną w pliku, którego nazwa jest podawana w parametrze -i. 
 #### Przykładowe uruchomienie:
 ```bash
-py main.py -m run -f input_model
+py index.py -m run -f SVC -i not_spam.txt
 ```
 
 ### Tryb wizualizacji

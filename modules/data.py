@@ -21,3 +21,23 @@ def getDataToLearn(file = 'full.csv', testSize = 0.2):
 	X_test = cv.transform(X_test)
 
 	return X_train, X_test, Y_train, Y_test
+
+
+def getCountVectorizer():
+	pathToDataForProcess = './data/parsed/full.csv'
+	# otwieranie danych do przetworzenia
+	data = pd.read_csv(pathToDataForProcess)
+
+	# rozdzielanie danych na x i y
+	X = data['email'].values
+	Y = data['label'].values
+	cv = CountVectorizer() 
+
+	#rozdzielanie danych na treningowe i testowe
+	X_train, X_test, Y_train, Y_test = train_test_split( X, Y, test_size=0.2, random_state=1)
+
+	# Przerabianie tekstu na liczby
+	X_train = cv.fit_transform(X_train)
+	# X_test = cv.transform(X_test)
+
+	return cv

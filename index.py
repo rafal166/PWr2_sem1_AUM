@@ -8,6 +8,7 @@ epilog="Autor: \n Rafał Rzewucki - 248926\n Dodatkowe opcje dla algorytmów: \n
 parser.add_argument('-m', "--mode", help="Określa metodę uruchoienia programu. Wartości: train|visualise|run", default='run', required=True)
 parser.add_argument('-a', "--algorithm", help="Określa używany algorytm. Wartości: SVC|MLP|KNN", default='', required=False)
 parser.add_argument('-f', "--file", help="Określa nazwę pliku do którego będzie zapisywane wyjście (Bez rozszerzenia!)", default='', required=False)
+parser.add_argument('-i', "--input", help="Określa nazwę pliku wejściowego, który będzie brany do przetwarzania", default='', required=False)
 parser.add_argument('-d', "--data", help="Określa nazwę pliku z którego ma pobierać dane do nauki", default='', required=False)
 parser.add_argument('-o1', "--option1", help="Opcja pierwsza - używana do przekazania argumentów do modelu (Opis na dole)", default='', required=False)
 parser.add_argument('-o2', "--option2", help="Opcja druga - używana do przekazania argumentów do modelu (Opis na dole)", default='', required=False)
@@ -23,5 +24,11 @@ elif args.mode == 'visualise':
 elif args.mode == 'run':
 	log('Tryb uruchamiania algorytmu')
 	runClassifier(args)
+elif args.mode == 'stats':
+	log('Tryb pobierania statystyk')
+	statisticClassifier(args)
+elif args.mode == 'grid':
+	log('Tryb szukania parametrów algorytmów')
+	gridSearchClassifier(args)
 else:
 	log("Nieznany tryb uruchomienia: " + args.mode)
