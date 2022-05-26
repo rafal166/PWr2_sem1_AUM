@@ -71,9 +71,6 @@ def runClassifier(args):
 	with open(getInputFilePath(args.input)) as f:
 		content = f.read()
 
-	log('content')
-	log(content)
-
 	# zamiana na wartość liczbową
 	cv = getCountVectorizer() 
 	X_content = cv.transform([content])

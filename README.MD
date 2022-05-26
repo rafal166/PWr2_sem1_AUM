@@ -16,7 +16,7 @@ Za pomocą wbudowanych opcji programu można zdefinować parametry danego algory
 Nauczone modele zapisywane są w katalogu **output** w pliku o nazwie zdefiniowanej parametrem **--file**.
 #### Przykładowe uruchomienie:
 ```bash
-py main.py -m train -a MLP -f output_model
+py index.py -m train -a MLP -f output_model
 ```
 
 
@@ -32,7 +32,21 @@ Ten tryb pozwala na zwizualizowanie procesu uczenia. Dane do uczenia przekazywan
 Wyjściem są wykresy opisujące parametry pracy algorytmu.
 #### Przykładowe uruchomienie:
 ```bash
-py main.py -m visualise -a SVC -f SVC-visualisation
+py index.py -m visualise -a SVC -f SVC-visualisation
+```
+
+### Tryb szukania parametrów - Grid Search
+Ten tryb pozwala na uruchomienie mechanizmu poszukiwania optymalnych parametrów danego algorytmu.
+#### Przykładowe uruchomienie:
+```bash
+py index.py -m grid -a SVC -f SVC-gird
+```
+
+### Tryb pobierania statystyk algorytmu
+Ten tryb pozwala na uruchomienie algorytmu i zebranie statystyk na jego temat. Trzeba podać model w parametrze -f
+#### Przykładowe uruchomienie:
+```bash
+py index.py -m stats -f SVC
 ```
 
 ## Problemy
